@@ -1,5 +1,3 @@
-
-using Application.Endpoints.Tickets;
 using Domain.Entities;
 
 namespace Application.Tickets.DTO;

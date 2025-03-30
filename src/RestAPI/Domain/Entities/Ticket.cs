@@ -1,6 +1,6 @@
 using Domain.Dto;
-using Domain.Erors.Extensions;
 using Domain.Errors;
+using Domain.Errors.Extensions;
 using FluentResults;
 using FluentValidation;
 
@@ -28,9 +28,9 @@ public class Ticket
 
 	public ICollection<TicketComment> Comments { get; private set; }
 
-	public Guid CreatedBy { get; }
+	public Guid CreatedBy { get; private set; }
 
-	private DateTime CreatedAt { get; }
+	public DateTime CreatedAt { get; private set; }
 
 	public User UpdatedBy { get; private set; }
 

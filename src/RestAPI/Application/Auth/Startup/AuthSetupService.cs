@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -18,7 +17,7 @@ public static class AuthorizationSetupService
 
 		using (var scope = app.Services.CreateScope())
 		{
-			var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+			var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
 
 			var roles = Role.Roles;
 
@@ -26,7 +25,7 @@ public static class AuthorizationSetupService
 			{
 				if (!await roleManager.RoleExistsAsync(role))
 				{
-					await roleManager.CreateAsync(new IdentityRole(role));
+					await roleManager.CreateAsync(new Role(role));
 				}
 			}
 		}
@@ -36,7 +35,7 @@ public static class AuthorizationSetupService
 	{
 		using (var scope = app.Services.CreateScope())
 		{
-			var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+			var userManager = scope.ServiceProvider.GetRequiredService<ApiUserManager>();
 			// Add a default manager
 
 			string managerEmail = "supporter@tick.it";
@@ -45,6 +44,7 @@ public static class AuthorizationSetupService
 			if (await userManager.FindByEmailAsync(managerEmail) == null)
 			{
 				var user = new User();
+				user.Name = "Mr. Manager";
 				user.Email = managerEmail;
 				user.UserName = managerEmail;
 				user.PasswordHash = managerPassword;
@@ -56,9 +56,10 @@ public static class AuthorizationSetupService
 			string guestEmail = "guest@tick.it";
 			string guestPassword = "ILoveTickets1234#@";
 
-			if (await userManager.FindByEmailAsync(managerEmail) == null)
+			if (await userManager.FindByEmailAsync(guestEmail) == null)
 			{
 				var user = new User();
+				user.Name = "Mr. Guest";
 				user.Email = guestEmail;
 				user.UserName = guestEmail;
 				user.PasswordHash = guestPassword;

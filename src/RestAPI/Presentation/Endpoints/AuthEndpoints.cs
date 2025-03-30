@@ -7,9 +7,9 @@ public static class AuthEndpoints
 		var group = app.MapGroup("/auth");
 
 
-		group.MapPost("login", Login).WithName("Login").WithOpenApi();
-		group.MapPost("signup", Signup).WithName("Signup").WithOpenApi();
-		group.MapPost("logout", Logout).WithName("Logout").WithOpenApi();
+		// group.MapPost("login", Login).WithName("Login").WithOpenApi();
+		// group.MapPost("register", Register).WithName("Register").WithOpenApi();
+		// group.MapPost("logout", Logout).WithName("Logout").WithOpenApi();
 
 
 		return app;
@@ -20,7 +20,7 @@ public static class AuthEndpoints
 		return TypedResults.Ok();
 	}
 
-	static async Task<IResult> Signup()
+	static async Task<IResult> Register()
 	{
 		return TypedResults.Ok();
 	}

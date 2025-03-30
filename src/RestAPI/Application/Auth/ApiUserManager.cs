@@ -6,6 +6,7 @@ namespace Application.Auth;
 
 public class ApiUserManager : UserManager<User>
 {
+
 	public ApiUserManager(
 		IUserStore<User> store,
 		IOptions<IdentityOptions> optionsAccessor,
@@ -15,7 +16,7 @@ public class ApiUserManager : UserManager<User>
 		ILookupNormalizer keyNormalizer,
 		IdentityErrorDescriber errors,
 		IServiceProvider services,
-		ILogger<UserManager<User>> logger) :
+		ILogger<ApiUserManager> logger) :
 			base(
 				store,
 				optionsAccessor,

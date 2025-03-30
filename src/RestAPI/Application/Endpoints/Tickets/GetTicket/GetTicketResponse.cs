@@ -1,4 +1,6 @@
+using System.Text.Json.Serialization;
 using Domain.Entities;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Application.Endpoints.Tickets.GetTicket;
 
@@ -12,15 +14,18 @@ public record GetTicketResponse
 
 	public required string Description { get; set; }
 
+	[JsonConverter(typeof(EnumToStringConverter<State>))]
 	public required State State { get; set; }
 
-	public ICollection<TicketComment> Comments { get; private set; } = [];
+	public ICollection<TicketComment> Comments { get; set; } = [];
 
-	public User? CreatedBy { get; set; }
+	public (Guid Id, string Name) CreatedBy { get; set; }
+
+	public string? CreatedByName { get; set; }
 
 	public DateTime CreatedAt { get; set; }
 
-	public User? UpdatedBy { get; set; }
+	public string? UpdatedByName { get; set; }
 
 	public DateTime UpdatedAt { get; set; }
 };

@@ -1,10 +1,6 @@
-using System.Reflection.Metadata;
 using FluentResults;
 using Infrastructure.Database;
-using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using Application.Endpoints.Tickets;
-using Microsoft.Extensions.ObjectPool;
 using Domain.Errors;
 
 namespace Application.Endpoints.Tickets.ListTickets;
@@ -47,7 +43,7 @@ public class ListTicketsHandler
 
 	public Result Validate()
 	{
-		if (_request.customer is not null)
+		if (_request.Customer is null)
 		{
 			return Result.Ok();
 		}

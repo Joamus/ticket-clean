@@ -1,25 +1,27 @@
+using System.Text.Json.Serialization;
 using FluentResults;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Domain.Errors;
 
-public class ApiError : IError
+public class ApiError : Error
 {
 
-	public ApiError(string path, string? description, ApiErrorType errorType)
+	public ApiError(string title, string? description, ApiErrorType errorType)
 	{
-		Path = path;
+		Title = title;
 		Message = description ?? "";
-		Metadata.Add("StatusCode", (int)errorType);
-		Metadata.Add("Path", path ?? "");
+		ErrorType = errorType;
+		// Metadata.Add("StatusCode", (int)errorType);
+		// Metadata.Add("Title", title ?? "");
 	}
 
-	public List<IError> Reasons => new List<IError>();
+	public string Title { get; init; }
 
-	public string Path { get; init; }
+	public ApiErrorType ErrorType { get; init; }
 
-	public string Message { get; init; }
-
-	public Dictionary<string, object> Metadata => new Dictionary<string, object>();
+	// [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+	// public new Dictionary<string, object> Metadata { get; } = new();
 
 	#region NotFound
 	public static ApiError NotFound()
@@ -105,6 +107,17 @@ public class ApiError : IError
 	public static ApiError InternalError(string property, string description)
 	{
 		return new ApiError(property, description, ApiErrorType.InternalError);
+	}
+
+
+	public ProblemDetails ToProblemDetails()
+	{
+		return new ProblemDetails
+		{
+			Title = this.Title,
+			Status = (int)this.ErrorType,
+			Detail = this.Message,
+		};
 	}
 
 	#endregion

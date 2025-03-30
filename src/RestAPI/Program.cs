@@ -1,8 +1,11 @@
 using Application.Auth;
+using Application.Auth.Extensions;
+using Applicatoin.Notifications.Extensions;
 using Domain.Entities;
 using Infrastructure.Database;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using Presentation.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,80 +13,90 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(opt =>
+{
+    opt.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "TicketSharp API",
+        Description = "Great place to complain",
+        Version = "v1"
+    });
+});
+
 
 // Not super elegant, but works for proof-of-concept - should not use an SQLite database in production.
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new FileNotFoundException("No database connection string");
 
 builder.Services.AddCors();
 
-builder.Services.AddAuthorization(options =>
+builder.Services.AddDbContext<AppDbContext>(opt =>
 {
-    AuthorizationSetupService.SetupClaims(options);
+    opt.UseSqlite(connectionString);
 });
 
-builder.Services.AddAuthentication()
+
+// Error handling
+
+builder.Services
+.AddGlobalErrorHandling();
+
+builder.Services
+.AddAuthorization(AuthorizationSetupService.SetupClaims)
+.AddAuthentication()
     .AddBearerToken(IdentityConstants.BearerScheme, options =>
     {
         options.BearerTokenExpiration = TimeSpan.FromSeconds(600);
     });
 
 builder.Services
-    .AddIdentityCore<User>()
-    .AddRoles<IdentityRole>()
-    .AddUserManager<ApiUserManager>();
-
-builder.Services.AddAppAuthServices();
-
-builder.Services.AddDbContext<AppDbContext>(opt =>
-{
-    opt.UseSqlite(connectionString);
-});
+    .AddNotificationServices()
+    .AddAppAuthServices()
+    .AddIdentity<User, Role>(opt =>
+    {
+        opt.SignIn.RequireConfirmedAccount = false;
+        opt.SignIn.RequireConfirmedPhoneNumber = false;
+        opt.SignIn.RequireConfirmedEmail = false;
+        opt.User.RequireUniqueEmail = true;
+    })
+    .AddRoles<Role>()
+    .AddUserManager<ApiUserManager>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders()
+    ;
 
 var app = builder.Build();
 
+
+await AuthorizationSetupService.SetupRoles(app);
+
+bool isDevelopment = app.Environment.IsDevelopment();
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (isDevelopment)
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(opt =>
+    {
+        opt.SwaggerEndpoint("/swagger/v1/swagger.json", "TicketSharp API V1");
+    });
     await AuthorizationSetupService.SetupTestUsers(app);
 }
+else
+{
+    app.UseHsts();
+    app.UseHttpsRedirection();
+}
 
-app.UseHttpsRedirection();
+app.UseGlobalErrorHandling(isDevelopment);
+
 
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapIdentityApi<User>();
 
-await AuthorizationSetupService.SetupRoles(app);
-// var summaries = new[]
-// {
-//     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-// };
-
-// app.MapGet("/weatherforecast", () =>
-// {
-//     var forecast =  Enumerable.Range(1, 5).Select(index =>
-//         new WeatherForecast
-//         (
-//             DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-//             Random.Shared.Next(-20, 55),
-//             summaries[Random.Shared.Next(summaries.Length)]
-//         ))
-//         .ToArray();
-//     return forecast;
-// })
-// .WithName("GetWeatherForecast")
-// .WithOpenApi();
 
 app
     .AddAuthEndpoints()
     .AddTicketEndpoints();
 
 await app.RunAsync();
-
-// record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-// {
-//     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-// }

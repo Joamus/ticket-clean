@@ -4,7 +4,6 @@ using Domain.Errors;
 using FluentResults;
 using Infrastructure.Database;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 
 namespace Application.Auth;
 

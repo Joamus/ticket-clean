@@ -1,8 +1,7 @@
 using Domain.Errors;
-using FluentResults;
 using FluentValidation.Results;
 
-namespace Domain.Erors.Extensions;
+namespace Domain.Errors.Extensions;
 
 public static class AbstractValidatorExtension
 {
